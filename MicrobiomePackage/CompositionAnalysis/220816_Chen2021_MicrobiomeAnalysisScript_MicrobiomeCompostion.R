@@ -3,6 +3,7 @@
 # Microbiome compostion
 # https://microbiome.github.io/tutorials/Composition.html
 
+# import qiime2 artifacts into phyloseq object for use in Microbiome package
 library(remotes)
 library(qiime2R)
 
@@ -10,7 +11,6 @@ physeq2<-qza_to_phyloseq(features="./ChenAll/dada2_table.qza",
                          tree="./ChenAll/tree.qza",
                          "./ChenAll/taxonomy2.qza",
                          metadata = "./ChenALl/Chenmanifest_all.tsv")
-
 physeq2
 
 # start tutorial
