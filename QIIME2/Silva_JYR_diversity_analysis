@@ -1,0 +1,146 @@
+## Import all Silva JYR Files
+## 1. import fastfiles in manifest format
+## Silva_JYR_1_import.sh
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path Silva_JYR_metadata.tsv \
+  --output-path ./Silva_JYR/demux_seqs.qza \
+  --input-format PairedEndFastqManifestPhred33V2
+  
+## ok
+
+## 2. visualize demux_seqs
+## Silva_JYR_2_summarize.sh
+qiime demux summarize \
+  --i-data ./Silva_JYR/demux_seqs.qza \
+  --o-visualization ./Silva_JYR/demux_seqs.qzv
+
+## 3. quality control
+## Silva_JYR_3_qualitycontrol.sh
+qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs ./Silva_JYR/demux_seqs.qza \
+  --p-trunc-len-f 150 \
+  --p-trunc-len-r 150 \
+  --o-table ./Silva_JYR/table.qza \
+  --o-representative-sequences ./Silva_JYR/rep-seqs.qza \
+  --o-denoising-stats ./Silva_JYR/denoising-stats.qza \
+  --p-n-threads 16
+
+## 4. summarize
+## Silva_JYR_4_summarize.sh
+qiime feature-table summarize \
+  --i-table ./Silva_JYR/table.qza \
+  --o-visualization ./Silva_JYR/table.qzv \
+  --m-sample-metadata-file Silva_JYR_metadata.tsv
+
+qiime feature-table tabulate-seqs \
+  --i-data ./Silva_JYR/rep-seqs.qza \
+  --o-visualization ./Silva_JYR/rep-seqs.qzv
+
+qiime metadata tabulate \
+  --m-input-file ./Silva_JYR/denoising-stats.qza \
+  --o-visualization ./Silva_JYR/denoising-stats.qzv
+  
+  
+## 5. phylogenetic tree
+## Silva_JYR_5_phytree.sh
+
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences ./Silva_JYR/rep-seqs.qza \
+  --o-alignment ./Silva_JYR/aligned-rep-seqs.qza \
+  --o-masked-alignment ./Silva_JYR/masked-aligned-rep-seqs.qza \
+  --o-tree ./Silva_JYR/unrooted-tree.qza \
+  --o-rooted-tree ./Silva_JYR/rooted-tree.qza
+# start 1:24 a.m., end: 1 min
+
+## 6. diversity analysis
+## Silva_JYR_6_diversity.sh
+## sampling value depth is important, 'Moving Pictures' tutorial bases this value using table.qzv
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny ./Silva_JYR/rooted-tree.qza \
+  --i-table ./Silva_JYR/table.qza \
+  --p-sampling-depth 5 \
+  --m-metadata-file Silva_JYR_metadata.tsv \
+  --output-dir ./Silva_JYR/core-metrics-results
+  
+## 7. alpha diversity analysis
+## Silva_JYR_7_alpha_diversity.sh
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity ./Silva_JYR/core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --o-visualization ./Silva_JYR/core-metrics-results/faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity ./Silva_JYR/core-metrics-results/evenness_vector.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --o-visualization ./Silva_JYR/core-metrics-results/evenness-group-significance.qzv
+  
+qiime diversity alpha \
+  --i-table ./Silva_JYR/table.qza \
+  --p-metric chao1 \
+  --o-alpha-diversity ./Silva_JYR/core-metrics-results/chao1_vector.qza
+
+qiime diversity alpha-group-significance \
+ --i-alpha-diversity ./Silva_JYR/core-metrics-results/chao1_vector.qza \
+ --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+ --o-visualization ./Silva_JYR/core-metrics-results/chao1_statistics.qzv
+
+## 8. beta diversity analysis
+## Silva_JYR_8_beta_diversity.sh
+qiime diversity beta-group-significance \
+  --i-distance-matrix ./Silva_JYR/core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --m-metadata-column group \
+  --o-visualization ./Silva_JYR/core-metrics-results/unweighted-unifrac-body-site-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix ./Silva_JYR/core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --m-metadata-column group \
+  --o-visualization ./Silva_JYR/core-metrics-results/unweighted-unifrac-subject-group-significance.qzv \
+  --p-pairwise
+  
+## 9. beta diversity visualization
+## Silva_JYR_9_beta_diversity_visualization.sh
+qiime emperor plot \
+  --i-pcoa ./Silva_JYR/core-metrics-results/unweighted_unifrac_pcoa_results.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --o-visualization ./Silva_JYR/core-metrics-results/unweighted-unifrac.qzv
+
+qiime emperor plot \
+  --i-pcoa ./Silva_JYR/core-metrics-results/bray_curtis_pcoa_results.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv\
+  --o-visualization ./Silva_JYR/core-metrics-results/bray-curtis.qzv
+  
+  
+  
+## 10. alphararefaction
+## ERROR!!!
+## Silva_JYR_10_alphararefaction.sh
+
+qiime diversity alpha-rarefaction \
+  --i-table ./Silva_JYR/table.qza \
+  --i-phylogeny ./Silva_JYR/rooted-tree.qza \
+  --p-max-depth 5 \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --o-visualization ./Silva_JYR/alpha-rarefaction.qzv
+  
+  
+## 11. taxonomic analysis
+## Silva_JYR_11_taxonomy.sh
+qiime feature-classifier classify-sklearn \
+  --i-classifier /NAS/home/tylee/2022/DADA2/silva-138-99-515-806-nb-classifier.qza \
+  --i-reads ./Silva_JYR/rep-seqs.qza \
+  --o-classification ./Silva_JYR/taxonomy.qza
+
+qiime metadata tabulate \
+  --m-input-file ./Silva_JYR/taxonomy.qza \
+  --o-visualization ./Silva_JYR/taxonomy.qzv
+  
+qiime taxa barplot \
+  --i-table ./Silva_JYR/table.qza \
+  --i-taxonomy ./Silva_JYR/taxonomy.qza \
+  --m-metadata-file Silva_JYR_metadata_diversity.tsv \
+  --o-visualization ./Silva_JYR/taxa-bar-plots.qzv
+  
