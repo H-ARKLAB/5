@@ -18,12 +18,16 @@ biom head -i feature-table.biom
 # get more information
 biom summarize-table -i feature-table.biom
 
+# activate picrust2
+conda activate picrust2
+
 # step 1. Place reads into reference tree
 ## filename: 1_phylogenetictee_with_ASV.sh
 
 vi 1_phylogenetictee_with_ASV.sh
 
 # 파일 생성후 실행 가능파일로 권한 바꿔줄 것
+# 이 step 이후에 만드는 파일들에 대해서도 모두 권한을 바꿔줄 것
 chmod +x 1_phylogenetictee_with_ASV.sh
 
 place_seqs.py -s ../exported-seqs-table/dna-sequences.fna -o out.tre -p 16 \
