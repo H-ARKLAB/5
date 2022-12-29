@@ -30,8 +30,12 @@ vi 1_phylogenetictee_with_ASV.sh
 # 이 step 이후에 만드는 파일들에 대해서도 모두 권한을 바꿔줄 것
 chmod +x 1_phylogenetictee_with_ASV.sh
 
+# 파일에 다음 코드 추가
 place_seqs.py -s ../exported-seqs-table/dna-sequences.fna -o out.tre -p 16 \
               --intermediate intermediate/place_seqs
+# 파일을 실행할때는 ./파일이름 으로 하면된다
+
+./1_phylogenetictee_with_ASV.sh
 
 # step 2. Hidden-state prediction of gene families
 ## filename: 2_gene_prediction.sh
