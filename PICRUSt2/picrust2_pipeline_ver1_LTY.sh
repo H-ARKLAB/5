@@ -1,5 +1,6 @@
 # PICRUSt2 pipeline
-# Last updated: 221222
+# First written: 221222
+# Last updated: 221229
 # By: LTY
 
 conda activate qiime2-2022.8
