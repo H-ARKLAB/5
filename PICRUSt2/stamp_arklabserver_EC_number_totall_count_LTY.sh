@@ -1,5 +1,5 @@
 # STAMP EC (Enzyme classification number) pipeline
-# First writeen: 221229
+# First written: 221229
 # By: LTY
 
 # move to working directory
